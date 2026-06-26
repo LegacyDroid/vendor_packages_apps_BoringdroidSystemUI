@@ -13,10 +13,10 @@ android_app {
 
     libs: [
         "SystemUIPluginLib",
-        "SystemUISharedLib",
     ],
 
     static_libs: [
+        "SystemUISharedLib",
         "androidx.recyclerview_recyclerview",
         "androidx.core_core-ktx",
         "kotlin-stdlib-jdk8",
