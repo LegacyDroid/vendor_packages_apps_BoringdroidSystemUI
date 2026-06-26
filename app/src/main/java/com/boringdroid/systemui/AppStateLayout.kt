@@ -254,12 +254,11 @@ class AppStateLayout @JvmOverloads constructor(
                 holder.iconIV.setOnDragListener(
                     DragDropCloseListener(
                         dragCloseThreshold,
-                        dragCloseThreshold
-                    ) { taskId: Int? ->
-                        AM_WRAPPER.removeTask(
-                            taskId!!
-                        )
-                    })
+                        dragCloseThreshold,
+                        Consumer { taskId ->
+                            taskId?.let { AM_WRAPPER.removeTask(it) }
+                        }
+                    ))
                 v.startDragAndDrop(dragData, shadow, null, DRAG_FLAG_GLOBAL)
                 true
             }

@@ -43,11 +43,7 @@ class AppLoaderTask(context: Context?, target: Handler?) : Runnable {
             appData.icon = info.getIcon(0)
             loaderAllApps.add(appData)
         }
-        loaderAllApps.sortWith { appDataOne: AppData, appDataTwo: AppData ->
-            appDataOne.name!!.compareTo(
-                appDataTwo.name!!
-            )
-        }
+        loaderAllApps.sortBy { it.name!! }
         val target = target
         target?.sendEmptyMessage(HandlerConstant.H_LOAD_SUCCEED)
     }
