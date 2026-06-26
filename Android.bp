@@ -1,0 +1,28 @@
+android_app {
+    name: "BoringdroidSystemUI",
+
+    srcs: ["app/src/main/java/**/*.kt"],
+
+    resource_dirs: ["app/src/main/res"],
+
+    manifest: "app/src/main/AndroidManifest.xml",
+
+    platform_apis: true,
+    certificate: "platform",
+    privileged: true,
+
+    libs: [
+        "SystemUIPluginLib",
+        "SystemUISharedLib",
+    ],
+
+    static_libs: [
+        "androidx.recyclerview_recyclerview",
+        "androidx.core_core-ktx",
+        "kotlin-stdlib-jdk8",
+    ],
+
+    optimize: {
+        enabled: false,
+    },
+}
