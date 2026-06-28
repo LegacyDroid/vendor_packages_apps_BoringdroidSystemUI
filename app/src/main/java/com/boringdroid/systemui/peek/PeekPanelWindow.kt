@@ -112,7 +112,7 @@ class PeekPanelWindow(
 
         val background = GradientDrawable()
         background.setColor(Color.parseColor("#FF1C1B1F"))
-        background.cornerRadius = dp(8f)
+        background.cornerRadius = dp(8f).toFloat()
         rootLayout.background = background
 
         val layoutParams = LinearLayout.LayoutParams(

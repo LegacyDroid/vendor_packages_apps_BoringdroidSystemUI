@@ -138,7 +138,7 @@ class TaskFullscreenMonitor(
             pkg
         }
 
-    private inner class MonitorListener : TaskStackChangeListener {
+    private inner class MonitorListener : TaskStackChangeListener() {
         override fun onTaskCreated(taskId: Int, componentName: ComponentName?) {
             refresh()
         }

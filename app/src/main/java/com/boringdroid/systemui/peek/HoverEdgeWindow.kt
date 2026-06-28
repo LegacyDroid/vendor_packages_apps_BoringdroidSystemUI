@@ -10,7 +10,7 @@ import android.view.WindowManager
 
 class HoverEdgeWindow(
     private val hostContext: Context,
-    private val onTrigger: () -> Unit,
+    private val onTrigger: () -> Unit
 ) {
     private val windowManager =
         hostContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -37,7 +37,7 @@ class HoverEdgeWindow(
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                     WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-                PixelFormat.TRANSLUCENT,
+                PixelFormat.TRANSLUCENT
             )
         lp.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
         lp.token = Binder()
