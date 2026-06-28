@@ -22,13 +22,12 @@ import com.boringdroid.systemui.peek.PeekCaptionController
 import java.lang.reflect.InvocationTargetException
 import java.util.Arrays
 import java.util.stream.Collectors
-import kotlin.collections.ArrayList
 
 @Requires(target = OverlayPlugin::class, version = OverlayPlugin.VERSION)
 class SystemUIOverlay : OverlayPlugin {
     private var pluginContext: Context? = null
     private var systemUIContext: Context? = null
-    private var navBarButtonGroup: View? = null
+    private var navBarRef: View? = null
     private var btAllAppsGroup: ViewGroup? = null
     private var appStateLayout: AppStateLayout? = null
     private var btAllApps: View? = null
@@ -51,37 +50,68 @@ class SystemUIOverlay : OverlayPlugin {
         }
     }
 
+    private val layoutChangeListener = View.OnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+        navBarRef?.let { injectIntoVisibleEndsGroup(it) }
+    }
+
     override fun setup(statusBar: View, navBar: View) {
         Log.d(TAG, "setup status bar $statusBar, nav bar $navBar")
+        navBarRef = navBar
         if (navBarButtonGroupId > 0) {
-            val buttonGroup = navBar.findViewById<View>(navBarButtonGroupId)
-            if (buttonGroup is ViewGroup) {
-                navBarButtonGroup = buttonGroup
-                // We must set the height to match parent programmatically
-                // to let all apps button group be center of navigation
-                // bar view.
-                val layoutParams = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT
-                )
-                val oldBtAllAppsGroup = buttonGroup.findViewWithTag<View>(TAG_ALL_APPS_GROUP)
-                if (oldBtAllAppsGroup != null) {
-                    buttonGroup.removeView(oldBtAllAppsGroup)
+            navBar.removeOnLayoutChangeListener(layoutChangeListener)
+            injectIntoVisibleEndsGroup(navBar)
+            navBar.addOnLayoutChangeListener(layoutChangeListener)
+        }
+    }
+
+    private fun injectIntoVisibleEndsGroup(navBar: View) {
+        if (navBarButtonGroupId <= 0) return
+        val visibleGroup = findVisibleEndsGroup(navBar, navBarButtonGroupId)
+        if (visibleGroup == null) {
+            Log.w(TAG, "no visible ends_group found, injecting into first match")
+            val fallback = navBar.findViewById<View>(navBarButtonGroupId)
+            if (fallback is ViewGroup) {
+                injectIntoGroup(fallback)
+            }
+            return
+        }
+        injectIntoGroup(visibleGroup)
+    }
+
+    @SuppressLint("InflateParams")
+    private fun injectIntoGroup(group: ViewGroup) {
+        val layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
+        )
+        val oldBtAllAppsGroup = group.findViewWithTag<View>(TAG_ALL_APPS_GROUP)
+        if (oldBtAllAppsGroup != null) {
+            group.removeView(oldBtAllAppsGroup)
+        }
+        btAllAppsGroup!!.tag = TAG_ALL_APPS_GROUP
+        group.addView(btAllAppsGroup, 0, layoutParams)
+
+        val oldAppStateLayout = group.findViewWithTag<View>(TAG_APP_STATE_LAYOUT)
+        if (oldAppStateLayout != null) {
+            group.removeView(oldAppStateLayout)
+        }
+        appStateLayout!!.tag = TAG_APP_STATE_LAYOUT
+        group.addView(appStateLayout, 4, layoutParams)
+        appStateLayout!!.initTasks()
+    }
+
+    private fun findVisibleEndsGroup(root: View, id: Int): ViewGroup? {
+        if (root is ViewGroup) {
+            for (i in 0 until root.childCount) {
+                val child = root.getChildAt(i)
+                if (child.id == id && child.isShown && child is ViewGroup) {
+                    return child
                 }
-                btAllAppsGroup!!.tag = TAG_ALL_APPS_GROUP
-                buttonGroup.addView(btAllAppsGroup, 0, layoutParams)
-                val oldAppStateLayout = buttonGroup.findViewWithTag<View>(TAG_APP_STATE_LAYOUT)
-                if (oldAppStateLayout != null) {
-                    buttonGroup.removeView(oldAppStateLayout)
-                }
-                appStateLayout!!.tag = TAG_APP_STATE_LAYOUT
-                // The first item is all apps group.
-                // The next three item is back button, home button, recents button.
-                // So we should add app state layout to the 5th, index 4.
-                buttonGroup.addView(appStateLayout, 4, layoutParams)
-                appStateLayout!!.initTasks()
+                val found = findVisibleEndsGroup(child, id)
+                if (found != null) return found
             }
         }
+        return null
     }
 
     override fun holdStatusBarOpen(): Boolean {
@@ -113,8 +143,11 @@ class SystemUIOverlay : OverlayPlugin {
     }
 
     override fun onDestroy() {
+        navBarRef?.removeOnLayoutChangeListener(layoutChangeListener)
+        navBarRef = null
         peekCaptionController?.stop()
         peekCaptionController = null
+        removeViewsFromEndsGroups()
         if (systemUIContext != null) {
             try {
                 systemUIContext!!.unregisterReceiver(closeSystemDialogsReceiver)
@@ -125,15 +158,28 @@ class SystemUIOverlay : OverlayPlugin {
         if (resolver != null) {
             resolver!!.unregisterContentObserver(tunerKeyObserver)
         }
-        btAllAppsGroup!!.post {
-            btAllAppsGroup!!.setOnClickListener(null)
-            btAllApps!!.setOnClickListener(null)
-            if (navBarButtonGroup is ViewGroup) {
-                (navBarButtonGroup as ViewGroup).removeView(btAllAppsGroup)
-                (navBarButtonGroup as ViewGroup).removeView(appStateLayout)
+        pluginContext = null
+    }
+
+    private fun removeViewsFromEndsGroups() {
+        val navBar = navBarRef ?: return
+        removeFromAllGroups(navBar, navBarButtonGroupId, TAG_ALL_APPS_GROUP)
+        removeFromAllGroups(navBar, navBarButtonGroupId, TAG_APP_STATE_LAYOUT)
+    }
+
+    private fun removeFromAllGroups(root: View, groupId: Int, tag: String) {
+        if (root is ViewGroup) {
+            for (i in 0 until root.childCount) {
+                val child = root.getChildAt(i)
+                if (child.id == groupId && child is ViewGroup) {
+                    val tagged = child.findViewWithTag<View>(tag)
+                    if (tagged != null) {
+                        child.removeView(tagged)
+                    }
+                }
+                removeFromAllGroups(child, groupId, tag)
             }
         }
-        pluginContext = null
     }
 
     @SuppressLint("PrivateApi")
