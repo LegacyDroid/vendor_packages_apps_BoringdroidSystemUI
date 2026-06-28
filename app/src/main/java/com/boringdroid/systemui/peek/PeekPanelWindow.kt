@@ -3,6 +3,7 @@ package com.boringdroid.systemui.peek
 import android.content.Context
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Binder
 import android.os.Handler
@@ -158,7 +159,7 @@ class PeekPanelWindow(
 
         buttonContainer.addView(createCaptionButton("\u2014", "Minimize") {
             callbacks.onMinimize(target.taskId)
-        })
+        }.also { it.setTypeface(null, Typeface.BOLD) })
         buttonContainer.addView(createCaptionButton("\u21F2", "Restore") {
             callbacks.onRestore(target.taskId)
         })
@@ -196,6 +197,7 @@ class PeekPanelWindow(
         btn.background = btnBg
         return btn
     }
+
 
     private fun dpToPx(dp: Float): Int {
         val density = pluginContext.resources.displayMetrics.density
