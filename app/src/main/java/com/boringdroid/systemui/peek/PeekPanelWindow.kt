@@ -157,9 +157,9 @@ class PeekPanelWindow(
         buttonContainerLayout.gravity = Gravity.CENTER_VERTICAL
         buttonContainer.layoutParams = buttonContainerLayout
 
-        buttonContainer.addView(createCaptionButton("\u2014", "Minimize") {
+        buttonContainer.addView(createCaptionButton("\u2014", "Minimize", bold = true) {
             callbacks.onMinimize(target.taskId)
-        }.also { it.setTypeface(null, Typeface.BOLD) })
+        })
         buttonContainer.addView(createCaptionButton("\u21F2", "Restore") {
             callbacks.onRestore(target.taskId)
         })
@@ -171,7 +171,8 @@ class PeekPanelWindow(
         return rootLayout
     }
 
-    private fun createCaptionButton(text: String, contentDesc: String, onClick: () -> Unit): View {
+    private fun createCaptionButton(text: String, contentDesc: String,
+                                    bold: Boolean = false, onClick: () -> Unit): View {
         val density = pluginContext.resources.displayMetrics.density
         val dp = { value: Float -> (value * density + 0.5f).toInt() }
 
@@ -187,6 +188,7 @@ class PeekPanelWindow(
         btn.text = text
         btn.setTextColor(Color.WHITE)
         btn.textSize = 16f
+        if (bold) btn.setTypeface(null, Typeface.BOLD)
         btn.contentDescription = contentDesc
         val btnSize = dp(40f)
         btn.layoutParams = LinearLayout.LayoutParams(btnSize, btnSize)
