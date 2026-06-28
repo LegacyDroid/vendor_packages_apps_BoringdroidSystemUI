@@ -84,17 +84,14 @@ class SystemUIOverlay : OverlayPlugin {
             FrameLayout.LayoutParams.WRAP_CONTENT,
             FrameLayout.LayoutParams.MATCH_PARENT
         )
-        val oldBtAllAppsGroup = group.findViewWithTag<View>(TAG_ALL_APPS_GROUP)
-        if (oldBtAllAppsGroup != null) {
-            group.removeView(oldBtAllAppsGroup)
-        }
+
+        val allAppsParent = btAllAppsGroup?.parent as? ViewGroup
+        allAppsParent?.removeView(btAllAppsGroup)
         btAllAppsGroup!!.tag = TAG_ALL_APPS_GROUP
         group.addView(btAllAppsGroup, 0, layoutParams)
 
-        val oldAppStateLayout = group.findViewWithTag<View>(TAG_APP_STATE_LAYOUT)
-        if (oldAppStateLayout != null) {
-            group.removeView(oldAppStateLayout)
-        }
+        val stateParent = appStateLayout?.parent as? ViewGroup
+        stateParent?.removeView(appStateLayout)
         appStateLayout!!.tag = TAG_APP_STATE_LAYOUT
         group.addView(appStateLayout, 4, layoutParams)
         appStateLayout!!.initTasks()
