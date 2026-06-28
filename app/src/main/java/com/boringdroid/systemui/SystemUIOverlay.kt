@@ -18,6 +18,7 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.android.systemui.plugins.OverlayPlugin
 import com.android.systemui.plugins.annotations.Requires
+import com.boringdroid.systemui.peek.PeekCaptionController
 import java.lang.reflect.InvocationTargetException
 import java.util.Arrays
 import java.util.stream.Collectors
@@ -34,6 +35,7 @@ class SystemUIOverlay : OverlayPlugin {
     private var allAppsWindow: AllAppsWindow? = null
     private var navBarButtonGroupId = -1
     private var resolver: ContentResolver? = null
+    private var peekCaptionController: PeekCaptionController? = null
     private val tunerKeys: MutableList<String> = ArrayList()
     private val tunerKeyObserver: ContentObserver = TunerKeyObserver()
     private val closeSystemDialogsReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -107,9 +109,12 @@ class SystemUIOverlay : OverlayPlugin {
         val filter = IntentFilter()
         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)
         systemUIContext!!.registerReceiver(closeSystemDialogsReceiver, filter)
+        peekCaptionController = PeekCaptionController(this.pluginContext!!, sysUIContext).apply { start() }
     }
 
     override fun onDestroy() {
+        peekCaptionController?.stop()
+        peekCaptionController = null
         if (systemUIContext != null) {
             try {
                 systemUIContext!!.unregisterReceiver(closeSystemDialogsReceiver)

@@ -1,7 +1,10 @@
 package com.boringdroid.systemui
 
+import android.app.WindowConfiguration
 import android.content.ComponentName
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.window.WindowContainerToken
 
 class TaskInfo {
     var id = 0
@@ -9,6 +12,10 @@ class TaskInfo {
     private var realActivityComponentName: ComponentName? = null
     var packageName: String? = null
     var icon: Drawable? = null
+    var token: WindowContainerToken? = null
+    var windowingMode: Int = WindowConfiguration.WINDOWING_MODE_UNDEFINED
+    var bounds: Rect? = null
+
     fun setBaseActivityComponentName(baseActivityComponentName: ComponentName?) {
         this.baseActivityComponentName = baseActivityComponentName
     }
@@ -21,7 +28,6 @@ class TaskInfo {
         if (other !is TaskInfo) {
             return false
         }
-        // The task id is unique in system.
         return id == other.id
     }
 
