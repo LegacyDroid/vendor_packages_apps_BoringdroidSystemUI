@@ -8,6 +8,7 @@ import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
+import android.os.Looper
 import android.os.UserManager
 import android.window.WindowContainerToken
 import com.android.systemui.shared.system.TaskStackChangeListener
@@ -21,18 +22,18 @@ data class PeekTarget(
     val label: CharSequence?,
     val currentMode: Int,
     val currentBounds: Rect,
-    val displayMode: Int,
+    val displayMode: Int
 )
 
 class TaskFullscreenMonitor(
-    private val pluginContext: Context,
+    private val pluginContext: Context
 ) {
     private val activityManager =
         pluginContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     private val launcherApps =
         pluginContext.getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
     private val userManager = pluginContext.getSystemService(Context.USER_SERVICE) as UserManager
-    private val listeners = TaskStackChangeListeners.getInstance()
+    private val taskListeners = TaskStackChangeListeners(Looper.getMainLooper())
     private val listener = MonitorListener()
 
     private val previousMode = HashMap<Int, Int>()
@@ -54,14 +55,14 @@ class TaskFullscreenMonitor(
     fun start() {
         if (started) return
         started = true
-        listeners.registerTaskStackListener(listener)
+        taskListeners.addListener(ActivityManager.getService(), listener)
         refresh()
     }
 
     fun stop() {
         if (!started) return
         started = false
-        listeners.unregisterTaskStackListener(listener)
+        taskListeners.removeListener(listener)
         previousMode.clear()
         maximizedFromFreeform.clear()
         _peekTarget = null
@@ -103,7 +104,7 @@ class TaskFullscreenMonitor(
     }
 
     private fun buildPeekTarget(info: ActivityManager.RunningTaskInfo): PeekTarget? {
-        val token = info.stackToken ?: return null
+        val token = info.token ?: return null
         val pkg = info.baseActivity?.packageName
         val icon = if (pkg != null) resolveIcon(pkg) else null
         val label = if (pkg != null) resolveLabel(pkg) else null
@@ -115,7 +116,7 @@ class TaskFullscreenMonitor(
             label = label,
             currentMode = info.configuration.windowConfiguration.windowingMode,
             currentBounds = Rect(info.configuration.windowConfiguration.bounds),
-            displayMode = info.configuration.windowConfiguration.displayWindowingMode,
+            displayMode = info.configuration.windowConfiguration.displayWindowingMode
         )
     }
 

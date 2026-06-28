@@ -11,8 +11,8 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
+import android.widget.Button
 import android.widget.FrameLayout
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -20,7 +20,7 @@ import android.widget.TextView
 class PeekPanelWindow(
     private val pluginContext: Context,
     private val hostContext: Context,
-    private val callbacks: Callbacks,
+    private val callbacks: Callbacks
 ) {
     interface Callbacks {
         fun onRestore(taskId: Int)
@@ -62,8 +62,8 @@ class PeekPanelWindow(
             panel,
             FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT,
-            ),
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
         )
 
         val lp =
@@ -75,7 +75,7 @@ class PeekPanelWindow(
                     WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                     WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                     WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-                PixelFormat.TRANSLUCENT,
+                PixelFormat.TRANSLUCENT
             )
         lp.gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
         lp.token = Binder()
@@ -117,7 +117,7 @@ class PeekPanelWindow(
 
         val layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.MATCH_PARENT
         )
         layoutParams.gravity = Gravity.CENTER_VERTICAL
         rootLayout.layoutParams = layoutParams
@@ -151,7 +151,7 @@ class PeekPanelWindow(
         buttonContainer.orientation = LinearLayout.HORIZONTAL
         val buttonContainerLayout = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.MATCH_PARENT
         )
         buttonContainerLayout.gravity = Gravity.CENTER_VERTICAL
         buttonContainer.layoutParams = buttonContainerLayout
@@ -174,7 +174,7 @@ class PeekPanelWindow(
         val density = pluginContext.resources.displayMetrics.density
         val dp = { value: Float -> (value * density + 0.5f).toInt() }
 
-        val btn = object : ImageButton(hostContext, null, android.R.attr.borderlessButtonStyle) {
+        val btn = object : Button(hostContext, null, android.R.attr.borderlessButtonStyle) {
             override fun onHoverEvent(event: MotionEvent): Boolean {
                 when (event.actionMasked) {
                     MotionEvent.ACTION_HOVER_ENTER -> alpha = 0.7f

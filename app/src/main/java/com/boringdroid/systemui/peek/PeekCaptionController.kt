@@ -7,12 +7,12 @@ import com.boringdroid.systemui.wm.TaskActions
 
 class PeekCaptionController(
     private val pluginContext: Context,
-    private val hostContext: Context,
+    private val hostContext: Context
 ) : PeekPanelWindow.Callbacks {
 
     private val monitor = TaskFullscreenMonitor(pluginContext)
     private val actions =
-        TaskActions(pluginContext, hostContext, onWctApplied = { monitor.refresh() })
+        TaskActions(pluginContext, hostContext) { monitor.refresh() }
     private val edge = HoverEdgeWindow(hostContext) { onEdgeHover() }
     private val panel = PeekPanelWindow(pluginContext, hostContext, this)
     private var currentTarget: PeekTarget? = null
@@ -62,7 +62,7 @@ class PeekCaptionController(
             token = target.token,
             currentMode = target.currentMode,
             currentBounds = target.currentBounds,
-            displayMode = target.displayMode,
+            displayMode = target.displayMode
         )
         hidePanel()
     }
@@ -77,7 +77,7 @@ class PeekCaptionController(
     override fun onClose(taskId: Int) {
         val target = currentTarget ?: return
         if (target.taskId != taskId) return
-        actions.close(target.token)
+        actions.close(target.taskId, target.token)
         hidePanel()
     }
 

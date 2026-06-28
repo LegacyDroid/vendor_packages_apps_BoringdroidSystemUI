@@ -1,6 +1,7 @@
 package com.boringdroid.systemui.wm
 
 import android.annotation.SuppressLint
+import android.app.ActivityTaskManager
 import android.app.WindowConfiguration
 import android.content.Context
 import android.content.Intent
@@ -18,19 +19,23 @@ import android.window.WindowOrganizer
 class TaskActions(
     private val pluginContext: Context,
     private val hostContext: Context,
-    private val onWctApplied: () -> Unit = {},
+    private val onWctApplied: () -> Unit = {}
 ) {
-    private val windowOrganizer = WindowOrganizer()
     private val mainHandler = Handler(Looper.getMainLooper())
 
-    fun close(token: WindowContainerToken) {
-        val wct = WindowContainerTransaction().removeTask(token)
-        apply(wct, "close")
+    fun close(taskId: Int, token: WindowContainerToken) {
+        try {
+            ActivityTaskManager.getService().removeTask(taskId)
+        } catch (e: Exception) {
+            Log.w(TAG, "close: removeTask failed, falling back to setHidden", e)
+            val wct = WindowContainerTransaction().setHidden(token, true)
+            WindowOrganizer.applyTransaction(wct)
+        }
     }
 
     fun minimize(token: WindowContainerToken) {
-        val wct = WindowContainerTransaction().reorder(token, /* onTop= */ false)
-        apply(wct, "minimize")
+        val wct = WindowContainerTransaction().reorder(token, false)
+        WindowOrganizer.applyTransaction(wct)
         val home =
             Intent(Intent.ACTION_MAIN)
                 .addCategory(Intent.CATEGORY_HOME)
@@ -46,7 +51,7 @@ class TaskActions(
         token: WindowContainerToken,
         currentMode: Int,
         currentBounds: Rect,
-        displayMode: Int,
+        displayMode: Int
     ) {
         val wct = WindowContainerTransaction()
         if (isDesktopModeEnabled()) {
@@ -71,7 +76,7 @@ class TaskActions(
                 wct.setBounds(token, null)
             }
         }
-        apply(wct, "toggleMaximize")
+        WindowOrganizer.applyTransaction(wct)
         mainHandler.postDelayed(onWctApplied, WCT_OBSERVE_DELAY_MS)
     }
 
@@ -116,14 +121,6 @@ class TaskActions(
         } catch (e: ReflectiveOperationException) {
             Log.w(TAG, "could not read $key; defaulting to $defaultValue", e)
             defaultValue
-        }
-    }
-
-    private fun apply(wct: WindowContainerTransaction, label: String) {
-        try {
-            windowOrganizer.applyTransaction(wct)
-        } catch (e: RuntimeException) {
-            Log.w(TAG, "$label transaction failed", e)
         }
     }
 
